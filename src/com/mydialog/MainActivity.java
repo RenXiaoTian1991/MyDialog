@@ -26,6 +26,7 @@ import com.mydialog.engine.DownLoadService;
 import com.mydialog.util.Util;
 
 public class MainActivity extends Activity {
+
 	private LayoutInflater mLayoutInflater;
 	private Dialog mDialog;
 	private TextView title;
