@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MyDialog</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="updateinfo">1、美化了UI。 \n2、解决已知Bug。 \n3、增加了同城交友功能。</string>
+
+</resources>
