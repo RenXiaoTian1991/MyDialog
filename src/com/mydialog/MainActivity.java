@@ -27,18 +27,17 @@ import com.mydialog.util.Util;
 
 public class MainActivity extends Activity {
 
-	private Dialog mDialog;
-	private ProgressBar mDownloadProgressBar;
 	private LayoutInflater mLayoutInflater;
-	private LinearLayout mInfo_ll;
-	private LinearLayout mProgress_ll;
-	private Button mPositive;
-	private Button mNegative;
-	private TextView mTitle;
+	private Dialog mDialog;
+	private TextView title;
+	private Button positive;
+	private Button negative;
+	private LinearLayout info_ll;
+	private LinearLayout progress_ll;
 	private Button mShowDialogButton;
+	private ProgressBar mDownloadProgressBar;
 	private TextView mDownloadPercentage;
 	private TextView mDownloadSize;
-
 	private int mFileMax;
 	private boolean mIsDownLoadDialog; // 是否是下载对话框
 
@@ -117,15 +116,15 @@ public class MainActivity extends Activity {
 		String updateMessage = getResources().getString(R.string.updateinfo);
 		TextView updateinfo_tv = (TextView) view.findViewById(R.id.updateinfo_tv);
 		updateinfo_tv.setText(updateMessage);
-		mTitle = (TextView) view.findViewById(R.id.dialog_title);
-		mInfo_ll = (LinearLayout) view.findViewById(R.id.info_ll);
-		mProgress_ll = (LinearLayout) view.findViewById(R.id.progress_ll);
-		mPositive = (Button) view.findViewById(R.id.bt_positive);
-		mNegative = (Button) view.findViewById(R.id.bt_negative);
+		title = (TextView) view.findViewById(R.id.dialog_title);
+		info_ll = (LinearLayout) view.findViewById(R.id.info_ll);
+		progress_ll = (LinearLayout) view.findViewById(R.id.progress_ll);
+		positive = (Button) view.findViewById(R.id.bt_positive);
+		negative = (Button) view.findViewById(R.id.bt_negative);
 		mDownloadProgressBar = (ProgressBar) view.findViewById(R.id.download_progressbar);
 		mDownloadPercentage = (TextView) view.findViewById(R.id.download_percentage);
 		mDownloadSize = (TextView) view.findViewById(R.id.download_size);
-		mPositive.setOnClickListener(new OnClickListener() {
+		positive.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (mIsDownLoadDialog) { // 后台下载
@@ -133,10 +132,10 @@ public class MainActivity extends Activity {
 				} else {
 					if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
 						mIsDownLoadDialog = true;
-						mTitle.setText("正在下载...");
-						mPositive.setText("后台下载");
-						mInfo_ll.setVisibility(View.GONE);
-						mProgress_ll.setVisibility(View.VISIBLE);
+						title.setText("正在下载...");
+						positive.setText("后台下载");
+						info_ll.setVisibility(View.GONE);
+						progress_ll.setVisibility(View.VISIBLE);
 						Intent intent = new Intent(DownLoadService.ACTION_UPDATE_DOWNLOAD_START);
 						MainActivity.this.startService(intent);
 
@@ -148,7 +147,7 @@ public class MainActivity extends Activity {
 				}
 			}
 		});
-		mNegative.setOnClickListener(new OnClickListener() {
+		negative.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (mIsDownLoadDialog) {
