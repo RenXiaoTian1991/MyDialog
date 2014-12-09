@@ -25,31 +25,15 @@
             android:textStyle="bold" />
     </RelativeLayout>
 
-    <LinearLayout
-        android:id="@+id/info_ll"
+    <TextView
+        android:id="@+id/updateinfo_tv"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/title_rl"
-        android:background="@android:color/transparent"
-        android:orientation="vertical"
-        android:paddingBottom="10dip"
-        android:paddingTop="10dp" >
-
-        <ScrollView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp" >
-
-            <TextView
-                android:id="@+id/updateinfo_tv"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:textColor="#FF000000"
-                android:textSize="18sp" />
-        </ScrollView>
-    </LinearLayout>
+        android:layout_centerVertical="true"
+        android:paddingLeft="15dip"
+        android:paddingRight="15dip"
+        android:textColor="#FF000000"
+        android:textSize="18sp" />
 
     <LinearLayout
         android:id="@+id/progress_ll"

@@ -16,9 +16,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.AnimationSet;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,26 +35,27 @@ public class MainActivity extends Activity {
 
 	private LayoutInflater mLayoutInflater;
 	private Dialog mDialog;
-	private TextView title;
-	private Button positive;
-	private Button negative;
-	private LinearLayout info_ll;
-	private LinearLayout progress_ll;
-	private Button mShowDialogButton;
-	private ProgressBar mDownloadProgressBar;
+	private RelativeLayout mTitle_rl;
+	private LinearLayout mProgress_ll;
+	private TextView mUpdateinfo_tv;
+	private TextView mTitle_tv;
 	private TextView mDownloadPercentage;
 	private TextView mDownloadSize;
+	private Button mPositive_bt;
+	private Button mNegative_bt;
+	private Button mShowDialogButton;
+	private ProgressBar mDownloadProgressBar;
+
 	private int mFileMax;
 	private boolean mIsDownLoadDialog; // 是否是下载对话框
 
+	public static Handler mHandler;
 	public static final int MSG_DOWN_ERROR = -1; // 下载失败
 	public static final int MSG_SDCARD_NOMOUNTED = 1;// SD卡不可用
 	public static final int MSG_DOWN_START = 2;// 开始下载
 	public static final int MSG_DOWN_ING = 3;// 下载中
 	public static final int MSG_DOWN_BACKGROUND = 4;// 开始后台下载
 	public static final int MSG_DOWN_SUCCESS = 5;// 下载完成
-
-	public static Handler mHandler;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +80,7 @@ public class MainActivity extends Activity {
 				case MSG_DOWN_START:
 					mFileMax = (Integer) msg.obj;
 					mDownloadProgressBar.setMax(mFileMax);
+					mShowDialogButton.setEnabled(false);
 					break;
 				case MSG_DOWN_ING:
 					int current = (Integer) msg.obj;
@@ -89,13 +97,15 @@ public class MainActivity extends Activity {
 					if (mDialog.isShowing()) {
 						mDialog.dismiss();
 					}
+					mShowDialogButton.setEnabled(true);
 					Toast.makeText(MainActivity.this, "下载完成。", Toast.LENGTH_SHORT).show();
 					break;
 				case MSG_SDCARD_NOMOUNTED:
+					mShowDialogButton.setEnabled(true);
 					Toast.makeText(MainActivity.this, "SD卡不可用。", Toast.LENGTH_SHORT).show();
 					break;
 				case MSG_DOWN_ERROR:
-
+					mShowDialogButton.setEnabled(true);
 					break;
 				}
 			}
@@ -114,17 +124,17 @@ public class MainActivity extends Activity {
 		mDialog.setContentView(view, new ViewGroup.LayoutParams(screenWidth * 8 / 9, screenHeight * 1 / 3));
 		mDialog.setCanceledOnTouchOutside(false);
 		String updateMessage = getResources().getString(R.string.updateinfo);
-		TextView updateinfo_tv = (TextView) view.findViewById(R.id.updateinfo_tv);
-		updateinfo_tv.setText(updateMessage);
-		title = (TextView) view.findViewById(R.id.dialog_title);
-		info_ll = (LinearLayout) view.findViewById(R.id.info_ll);
-		progress_ll = (LinearLayout) view.findViewById(R.id.progress_ll);
-		positive = (Button) view.findViewById(R.id.bt_positive);
-		negative = (Button) view.findViewById(R.id.bt_negative);
+		mUpdateinfo_tv = (TextView) view.findViewById(R.id.updateinfo_tv);
+		mUpdateinfo_tv.setText(updateMessage);
+		mTitle_rl = (RelativeLayout) view.findViewById(R.id.title_rl);
+		mTitle_tv = (TextView) view.findViewById(R.id.dialog_title);
+		mProgress_ll = (LinearLayout) view.findViewById(R.id.progress_ll);
+		mPositive_bt = (Button) view.findViewById(R.id.bt_positive);
+		mNegative_bt = (Button) view.findViewById(R.id.bt_negative);
 		mDownloadProgressBar = (ProgressBar) view.findViewById(R.id.download_progressbar);
 		mDownloadPercentage = (TextView) view.findViewById(R.id.download_percentage);
 		mDownloadSize = (TextView) view.findViewById(R.id.download_size);
-		positive.setOnClickListener(new OnClickListener() {
+		mPositive_bt.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (mIsDownLoadDialog) { // 后台下载
@@ -132,10 +142,7 @@ public class MainActivity extends Activity {
 				} else {
 					if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
 						mIsDownLoadDialog = true;
-						title.setText("正在下载...");
-						positive.setText("后台下载");
-						info_ll.setVisibility(View.GONE);
-						progress_ll.setVisibility(View.VISIBLE);
+						showProgressBar();
 						Intent intent = new Intent(DownLoadService.ACTION_UPDATE_DOWNLOAD_START);
 						MainActivity.this.startService(intent);
 
@@ -147,13 +154,14 @@ public class MainActivity extends Activity {
 				}
 			}
 		});
-		negative.setOnClickListener(new OnClickListener() {
+		mNegative_bt.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (mIsDownLoadDialog) {
 					Intent intent = new Intent(DownLoadService.ACTION_UPDATE_DOWNLOAD_CANCEL);
 					MainActivity.this.startService(intent);
 					Toast.makeText(MainActivity.this, "下载已取消", Toast.LENGTH_SHORT).show();
+					mShowDialogButton.setEnabled(true);
 				}
 				mDialog.dismiss();
 			}
@@ -171,9 +179,51 @@ public class MainActivity extends Activity {
 		mDialog.show();
 	}
 
+	private void showProgressBar() {
+		mTitle_tv.setText("正在下载...");
+		mPositive_bt.setText("后台下载");
+
+		int marginOutside = mUpdateinfo_tv.getTop() - mTitle_rl.getBottom();
+		Animation infoTranslateAnim = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f,
+				Animation.RELATIVE_TO_SELF, 0f, Animation.ABSOLUTE, 0, Animation.ABSOLUTE, -marginOutside);
+		Animation infoAlphaAnim = new AlphaAnimation(1f, 0f);
+		AnimationSet infoAnimationSet = new AnimationSet(false);
+		infoAnimationSet.addAnimation(infoTranslateAnim);
+		infoAnimationSet.addAnimation(infoAlphaAnim);
+		infoAnimationSet.setDuration(300);
+		infoAnimationSet.setFillAfter(true);
+		mUpdateinfo_tv.startAnimation(infoAnimationSet);
+
+		Animation progressTranslateAnim = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f,
+				Animation.RELATIVE_TO_SELF, 0f, Animation.ABSOLUTE, marginOutside, Animation.ABSOLUTE, 0f);
+		Animation progressAlphaAnim = new AlphaAnimation(0f, 1f);
+		AnimationSet progressAnimationSet = new AnimationSet(false);
+		progressAnimationSet.addAnimation(progressTranslateAnim);
+		progressAnimationSet.addAnimation(progressAlphaAnim);
+		progressAnimationSet.setDuration(300);
+		progressAnimationSet.setFillAfter(true);
+		mProgress_ll.startAnimation(progressAnimationSet);
+		progressAnimationSet.setAnimationListener(new AnimationListener() {
+
+			@Override
+			public void onAnimationStart(Animation arg0) {
+				mProgress_ll.setVisibility(View.VISIBLE);
+			}
+
+			@Override
+			public void onAnimationRepeat(Animation arg0) {
+
+			}
+
+			@Override
+			public void onAnimationEnd(Animation arg0) {
+				mUpdateinfo_tv.setVisibility(View.GONE);
+			}
+		});
+	}
+
 	private void refreshProgress(int current) {
 		mDownloadProgressBar.setProgress(current);
-
 		float current_f = current;
 		float fileMax_f = mFileMax;
 		NumberFormat percentFormat = NumberFormat.getPercentInstance(); // 得到百分比Format
